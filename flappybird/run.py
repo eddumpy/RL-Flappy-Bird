@@ -55,7 +55,6 @@ if __name__ == '__main__':
 
     # Dump result info to disk
     env.close()
-    print("done")
 
     # Upload to the scoreboard. We could also do this from another
     # process if we wanted.
