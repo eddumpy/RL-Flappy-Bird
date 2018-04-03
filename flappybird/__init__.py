@@ -4,7 +4,7 @@ import numpy as np
 
 import pygame
 from pygame.constants import K_w
-from .. import base
+import base
 
 
 class BirdPlayer(pygame.sprite.Sprite):
