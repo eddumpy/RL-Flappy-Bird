@@ -4,7 +4,7 @@ import numpy as np
 
 import pygame
 from pygame.constants import K_w
-import base
+import pygamewrapper
 
 
 class BirdPlayer(pygame.sprite.Sprite):
@@ -163,7 +163,7 @@ class Backdrop():
         screen.blit(self.background_image, (0, 0))
 
 
-class FlappyBird(base.PyGameWrapper):
+class FlappyBird(PyGameWrapper):
     """
     Used physics values from sourabhv's `clone`_.
 
@@ -191,7 +191,7 @@ class FlappyBird(base.PyGameWrapper):
 
         fps = 30
 
-        base.PyGameWrapper.__init__(self, width, height, actions=actions)
+        PyGameWrapper.__init__(self, width, height, actions=actions)
 
         self.scale = 30.0 / fps
 
