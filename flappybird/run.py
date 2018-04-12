@@ -68,23 +68,63 @@ def visualization_test():
         logger.info("Successfully ran RandomAgent. Now trying to upload results to the scoreboard. If it breaks, you can always just try re-uploading the same results.")
         gym.upload(outdir)
 
-def process_state(state):
-        return np.array([ state.values() ])
+class Agent():
+    def __init__(self, environment, alpha=0.1, epsilon=0.1, gamma=1):
+        self.env = environment
+        self.alpha = alpha
+        self.epsilon = epsilon
+        self.gamma = gamma
 
-def play(episodes=10):
-    # Initialize game with wrapper object
+    def random_action(self):
+        '''Returns random action from available actions'''
+        available_actions = self.env.getActionSet()
+        action = np.random.choice(available_actions)
+        return action
+
+    def choose_action(self):
+        '''Chooses action following e-greedy policy'''
+        return self.random_action()
+
+    def learn(self):
+        pass
+
+def process_state(state):
+    '''Processes state values into state representation'''
+    # Input values
+    player_y = state["player_y"]
+    player_vel = state["player_vel"]
+    pipe_1_x_diff = state["next_pipe_dist_to_player"]
+    pipe_1_top_y = state["next_pipe_top_y"]
+    pipe_1_bottom_y = state["next_pipe_bottom_y"]
+    pipe_2_x_diff = state["next_next_pipe_dist_to_player"]
+    pipe_2_top_y = state["next_next_pipe_top_y"]
+    pipe_2_bottom_y = state["next_next_pipe_bottom_y"]
+
+    # Flip calculations
+    player_vel *= -1
+    pipe_gap = pipe_1_bottom_y - pipe_1_top_y
+    pipe_1_y_diff = player_y - pipe_1_bottom_y
+    pipe_2_y_diff = player_y - pipe_2_bottom_y
+
+    # Process state
+    state_representation = np.array([player_vel, pipe_1_x_diff, pipe_1_y_diff, pipe_gap])
+    return state_representation
+
+def play(episodes=100):
+    # Initialize game and agent
     game = FlappyBird()
     p = PLE(game, display_screen=True, state_preprocessor=process_state)
     p.init()
+    agent = Agent(p)
 
     # Run given number of episodes
     for _ in range(episodes):
         p.reset_game()
         while not p.game_over():
             state = p.getGameState()
-            action = np.random.choice(p.getActionSet())
-            #action = agent.pickAction(reward, state)
+            action = agent.choose_action()
             reward = p.act(action)
-            print(state,action,reward)
+            #print(state,action,reward)
+
 
 play()
