@@ -1,8 +1,7 @@
 {
   "ExpandedNodes": [
     "",
-    "\\flappybird",
-    "\\flappybird\\base"
+    "\\flappybird"
   ],
   "SelectedNode": "\\flappybird\\run.py",
   "PreviewInSolutionExplorer": false
