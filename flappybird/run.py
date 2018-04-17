@@ -111,6 +111,12 @@ def process_state(state):
     state_representation = np.array([player_vel, pipe_1_x_diff, pipe_1_y_diff, pipe_gap])
     return state_representation
 
+def getQ(F, theta):
+    Q = 0
+    for i in F:
+        Q += theta[i]
+    return Q
+
 def play(episodes=100):
     # Initialize game and agent
     game = FlappyBird()
@@ -124,16 +130,50 @@ def play(episodes=100):
     num_height_tiles = 10
     num_velocity_tiles = 13
     num_actions = 2
-    num_tiles = num_tilings * num_distance_tiles * num_velocity_tiles * num_actions
+    num_tiles = num_tilings * num_distance_tiles * num_height_tiles * num_velocity_tiles * num_actions
+
+    theta = np.zeros(num_tiles)
 
     # Run given number of episodes
     for _ in range(episodes):
         p.reset_game()
         e = np.zeros(num_tiles)
+
+        # Get initial state and action
+        state = process_state(p.getGameState())
+        action = agent.choose_action()
+        print(p.getGameState())
+
         while not p.game_over():
-            state = p.getGameState()
-            action = agent.choose_action()
+
+            # Get features that are 'on'
+            F = t.getFeatures(state, action)
+
+            for i in F:
+                e[i] = 1 # replacing traces
+
+            # Take action and observe reward and next state
             reward = p.act(action)
+            state_prime = process_state(p.getGameState())
+
+            delta = reward - getQ(F, theta)
+
+            if np.random.uniform(0, 1) < (1 - agent.epsilon):
+                Qs = np.zeros(3)
+                for a in env.getActionSet():
+                    F = genIndices(s, a, tilings)
+                    Qa = calcQ(F, theta)
+                    Qs[a + 1] = Qa
+                maxQ = max(Q)
+                if (Qs == maxQ).sum() > 1:
+                    best = [i for i in range(len(actions)) if Qs[i] == maxQ]
+                    i = random.choice(best)
+                else:
+                    i = np.argmax(Q)
+                action = actions[i]
+                Qa = Qs[i]
+                return action, Qa
+
             #print(state,action,reward)
 
 
