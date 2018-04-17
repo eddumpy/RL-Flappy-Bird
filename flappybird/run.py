@@ -3,6 +3,7 @@ import gym_ple
 import os, sys
 import logging
 import numpy as np
+import Tiling
 
 from ple import PLE
 from gym.wrappers import Monitor
@@ -116,10 +117,19 @@ def play(episodes=100):
     p = PLE(game, display_screen=True, state_preprocessor=process_state)
     p.init()
     agent = Agent(p)
+    tiling = Tiling(-39, 300, -10, 16, -50, 50)
+
+    num_tilings = 5
+    num_distance_tiles = 10
+    num_height_tiles = 10
+    num_velocity_tiles = 13
+    num_actions = 2
+    num_tiles = num_tilings * num_distance_tiles * num_velocity_tiles * num_actions
 
     # Run given number of episodes
     for _ in range(episodes):
         p.reset_game()
+        e = np.zeros(num_tiles)
         while not p.game_over():
             state = p.getGameState()
             action = agent.choose_action()
