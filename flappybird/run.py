@@ -144,9 +144,9 @@ def play(episodes=100):
         e = np.zeros(t.total_tiles)
 
         # Get initial state and action
-        state = process_state(p.getGameState())
+        state = p.getGameState()
         action = agent.choose_action()
-        print(p.getGameState())
+        total_reward = 0
 
         while not p.game_over():
 
@@ -158,7 +158,7 @@ def play(episodes=100):
 
             # Take action and observe reward and next state
             reward = p.act(action)
-            state_prime = process_state(p.getGameState())
+            state_prime = p.getGameState()
 
             delta = reward - getQ(F, theta)
 
@@ -184,10 +184,13 @@ def play(episodes=100):
 
             delta = delta + agent.gamma * Qa
             theta = theta + agent.alpha * delta * e
-            e = agent.gamma * agent.lambda_
+            e = agent.gamma * agent.lambda_ * e
 
             state = np.copy(state_prime)
             action = action_prime
+            total_reward += reward
+
+        print(total_reward)
 
 
 play()
