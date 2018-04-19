@@ -111,6 +111,7 @@ class Tiling(object):
             action_index = 0
         else:
             action_index = 1
+
         distance = state[0]
         velocity = state[1]
         height = state[2]
@@ -118,6 +119,7 @@ class Tiling(object):
 
         indices = []
 
+        # Append indices for each overlapping tile
         for i in range(self.overlap):
             d_index = F[0][i]
             v_index = F[1][i]
