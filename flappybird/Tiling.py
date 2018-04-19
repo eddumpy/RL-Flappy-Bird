@@ -106,7 +106,7 @@ class Tiling(object):
         return all_features
 
     def get_indices(self, state, action):
-        '''Takes the 'on' features and returns the indices of them'''
+        '''Takes the 'on' features and returns their indices'''
         if action == None:
             action_index = 0
         else:
