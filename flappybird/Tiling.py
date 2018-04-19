@@ -104,3 +104,32 @@ class Tiling(object):
 
         all_features = (distance_features, velocity_features, height_features)
         return all_features
+
+    def get_indices(self, state, action):
+        '''Takes the 'on' features and returns their indices'''
+        if action == None:
+            action_index = 0
+        else:
+            action_index = 1
+        distance = state[0]
+        velocity = state[1]
+        height = state[2]
+        F = self.get_features(distance, velocity, height)
+
+        indices = []
+
+        for i in range(self.overlap):
+            d_index = F[0][i]
+            v_index = F[1][i]
+            h_index = F[2][i]
+
+            index = int( \
+                  (action_index * (self.total_tiles / self.action_number)) \
+                + (i * self.distance_number * self.velocity_number * self.height_number) \
+                + (d_index) \
+                + (v_index * self.distance_number) \
+                + (h_index * self.distance_number * self.velocity_number) )
+
+            indices.append(index)
+
+        return indices
