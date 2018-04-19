@@ -3,7 +3,8 @@ import gym_ple
 import os, sys
 import logging
 import numpy as np
-import Tiling
+import random
+from Tiling import Tiling
 
 from ple import PLE
 from gym.wrappers import Monitor
@@ -70,11 +71,12 @@ def visualization_test():
         gym.upload(outdir)
 
 class Agent():
-    def __init__(self, environment, alpha=0.1, epsilon=0.1, gamma=1):
+    def __init__(self, environment, alpha=0.1, epsilon=0.1, gamma=1, lambda_=0.9):
         self.env = environment
         self.alpha = alpha
         self.epsilon = epsilon
         self.gamma = gamma
+        self.lambda_ = lambda_
 
     def random_action(self):
         '''Returns random action from available actions'''
@@ -89,6 +91,7 @@ class Agent():
     def learn(self):
         pass
 
+# Overriding method
 def process_state(state):
     '''Processes state values into state representation'''
     # Input values
@@ -108,7 +111,7 @@ def process_state(state):
     pipe_2_y_diff = player_y - pipe_2_bottom_y
 
     # Process state
-    state_representation = np.array([player_vel, pipe_1_x_diff, pipe_1_y_diff, pipe_gap])
+    state_representation = np.array([pipe_1_x_diff, player_vel, pipe_1_y_diff, pipe_gap])
     return state_representation
 
 def getQ(F, theta):
@@ -123,21 +126,22 @@ def play(episodes=100):
     p = PLE(game, display_screen=True, state_preprocessor=process_state)
     p.init()
     agent = Agent(p)
-    tiling = Tiling(-39, 300, -10, 16, -50, 50)
+    t = Tiling(-39, 300, -10, 16, -50, 50)
+    #F = t.get_features(10, 10, 10)
+    #print(F)
+    #print(t.total_tiles)
+    #state = process_state(p.getGameState())
+    #action = None
+    #i = t.get_indices(state, action)
+    #print(i)
+    #print(p.getGameState())
 
-    num_tilings = 5
-    num_distance_tiles = 10
-    num_height_tiles = 10
-    num_velocity_tiles = 13
-    num_actions = 2
-    num_tiles = num_tilings * num_distance_tiles * num_height_tiles * num_velocity_tiles * num_actions
-
-    theta = np.zeros(num_tiles)
+    theta = np.zeros(t.total_tiles)
 
     # Run given number of episodes
     for _ in range(episodes):
         p.reset_game()
-        e = np.zeros(num_tiles)
+        e = np.zeros(t.total_tiles)
 
         # Get initial state and action
         state = process_state(p.getGameState())
@@ -147,7 +151,7 @@ def play(episodes=100):
         while not p.game_over():
 
             # Get features that are 'on'
-            F = t.getFeatures(state, action)
+            F = t.get_indices(state, action)
 
             for i in F:
                 e[i] = 1 # replacing traces
@@ -158,23 +162,32 @@ def play(episodes=100):
 
             delta = reward - getQ(F, theta)
 
+            actions = p.getActionSet()
             if np.random.uniform(0, 1) < (1 - agent.epsilon):
-                Qs = np.zeros(3)
-                for a in env.getActionSet():
-                    F = genIndices(s, a, tilings)
-                    Qa = calcQ(F, theta)
-                    Qs[a + 1] = Qa
-                maxQ = max(Q)
-                if (Qs == maxQ).sum() > 1:
+                Qs = []
+                for a in actions:
+                    F = t.get_indices(state_prime, a)
+                    Qa = getQ(F, theta)
+                    Qs.append(Qa)
+                maxQ = max(Qs)
+                if Qs.count(maxQ) > 1:
                     best = [i for i in range(len(actions)) if Qs[i] == maxQ]
                     i = random.choice(best)
                 else:
-                    i = np.argmax(Q)
-                action = actions[i]
+                    i = np.argmax(Qs)
+                action_prime = actions[i]
                 Qa = Qs[i]
-                return action, Qa
+            else:
+                action_prime = random.choice(actions)
+                F = t.get_indices(state_prime, action)
+                Qa = getQ(F, theta)
 
-            #print(state,action,reward)
+            delta = delta + agent.gamma * Qa
+            theta = theta + agent.alpha * delta * e
+            e = agent.gamma * agent.lambda_
+
+            state = np.copy(state_prime)
+            action = action_prime
 
 
 play()
