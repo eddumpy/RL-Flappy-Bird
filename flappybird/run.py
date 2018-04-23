@@ -11,7 +11,7 @@ from gym.wrappers import Monitor
 from ple.games.flappybird import FlappyBird
 
 class Agent():
-    def __init__(self, environment, alpha=0.1, epsilon=0.1, gamma=1, lambda_=0.9):
+    def __init__(self, environment, alpha=0.1, epsilon=0.05, gamma=1, lambda_=0.9):
         '''Initializes parameter values'''
         self.env = environment
         self.alpha = alpha
@@ -52,7 +52,7 @@ def process_state(state):
     pipe_2_y_diff = player_y - pipe_2_bottom_y
 
     # Process state
-    state_representation = np.array([pipe_1_x_diff, player_vel, pipe_1_y_diff, pipe_gap])
+    state_representation = np.array([pipe_1_x_diff, player_vel, pipe_1_y_diff, pipe_2_x_diff, pipe_2_y_diff])
     return state_representation
 
 def getQ(F, theta):
@@ -70,9 +70,13 @@ def play(episodes=100):
     p.init()
     agent = Agent(p)
 
-    # Initialize tiles with fixed values and theta table
-    t = Tiling(-39, 300, -10, 16, -50, 50)
-    theta = np.zeros(t.total_tiles)
+    # Initialize tiles with fixed values
+    #t = Tiling(0, 300, -10, 16, -300, 250, 100, 450) # pipe_2_y min and max ignored as same as pipe_1_y
+    t = Tiling(0, 300, -10, 16, -300, 250)
+
+    # Load theta from file
+    theta = np.load('theta.npy')
+    #theta = np.zeros(t.total_tiles)
 
     # Run given number of episodes
     for _ in range(episodes):
@@ -86,6 +90,7 @@ def play(episodes=100):
 
         # Episode loop
         while not p.game_over():
+            #print(state[0],"\t",state[1],"\t",state[2],"\t",state[3],"\t",state[4])
             # Get features that are 'on'
             F = t.get_indices(state, action)
 
@@ -127,4 +132,9 @@ def play(episodes=100):
 
         print(total_reward)
 
-play(episodes = 30000)
+
+    # Save updated theta to file
+    np.save('theta', theta)
+
+play(episodes = 100)
+
