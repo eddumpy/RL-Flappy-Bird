@@ -1,3 +1,4 @@
+import time
 import gym
 import gym_ple
 import os, sys
@@ -126,10 +127,14 @@ def play(episodes=100):
             theta += agent.alpha * delta * e
             e *= agent.gamma * agent.lambda_
             total_reward += reward
+            print(state)
+            #time.sleep(0.007)
 
         print(total_reward)
+
 
     # Save updated theta to file
     np.save('theta', theta)
 
 play(episodes = 100)
+
