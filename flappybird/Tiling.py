@@ -1,7 +1,8 @@
 import numpy as np
 
 class Tiling(object):
-    def __init__(self, distance_min, distance_max, velocity_min, velocity_max, height_min, height_max, distance_number=15, velocity_number=13, height_number=10, overlap=5, action_number=2):
+    def __init__(self, distance_min, distance_max, velocity_min, velocity_max, height_min, height_max, second_distance_min, second_distance_max,\
+        distance_number=15, velocity_number=13, height_number=10, overlap=5, action_number=2):
         '''Creates tilings for all dimensions'''
         # Overlap and actions
         self.overlap = overlap
@@ -10,14 +11,16 @@ class Tiling(object):
         # Distance
         self.distance_number = distance_number
         self.distance_tiles = self.create_distance_tile(distance_min, distance_max, distance_number)
-
-        # Velocity
-        self.velocity_number = velocity_number
-        self.velocity_tiles = self.create_velocity_tile(velocity_min, velocity_max, velocity_number)
+        self.second_distance_tiles = self.create_second_distance_tile(second_distance_min, second_distance_max, distance_number)
 
         # Height
         self.height_number = height_number
         self.height_tiles = self.create_height_tile(height_min, height_max, height_number)
+        self.second_height_tiles = self.create_height_tile(height_min, height_max, height_number)
+        
+        # Velocity
+        self.velocity_number = velocity_number
+        self.velocity_tiles = self.create_velocity_tile(velocity_min, velocity_max, velocity_number)
 
         # Total tiles
         self.total_tiles = self.calculate_total_tiles()
@@ -38,6 +41,21 @@ class Tiling(object):
             distance_tiles.append(initial_distance_tile-offset)
 
         return distance_tiles
+
+    def create_second_distance_tile(self, second_distance_min, second_distance_max, distance_number):
+        '''Creates linear distance tiles - output is nd array with element for each overlapping tile, each holding tile range with offset [[[]]]'''
+        # Initialize first tile
+        distance_range = second_distance_max-second_distance_min
+        distance_tile_width = distance_range/distance_number
+        initial_distance_tile = np.linspace(second_distance_min, second_distance_max+distance_tile_width, distance_number+1)
+        second_distance_tiles = [initial_distance_tile]
+        
+        # Overlap remaining tiles
+        for _ in range(self.overlap-1):
+            offset = np.random.uniform(0, distance_tile_width)
+            second_distance_tiles.append(initial_distance_tile-offset)
+
+        return second_distance_tiles
 
     def create_velocity_tile(self, velocity_min, velocity_max, velocity_number):
         '''Creates even spaced velocity tiles - output is nd array with element for each overlapping tile, each holding tile range with offset [[[]]]'''
@@ -78,31 +96,39 @@ class Tiling(object):
         '''Calculates total number of all tiles'''
         # Add all individual tiles and multiply by overlap and actions
         total_distance_tiles = self.distance_number+1
-        total_height_tiles = self.distance_number+1
+        total_height_tiles = self.height_number+1
         total_velocity_tiles = self.velocity_number+1
-        total = total_distance_tiles * total_height_tiles * total_velocity_tiles
+        total_second_distance_tiles = self.distance_number+1
+        total_second_height_tiles = self.height_number+1
+        total = total_distance_tiles * total_height_tiles * total_velocity_tiles * total_second_distance_tiles * total_second_height_tiles
         total *= self.overlap
         total *= self.action_number
         return total
 
-    def get_features(self, distance, velocity, height):
-        '''Returns on features for current state - triplestore array for distance, velocity and height'''
+    def get_features(self, distance, velocity, height, second_distance, second_height):
+        '''Returns on features for current state - tuple of arrays for distance, velocity, height, second_distance and second_height'''
         distance_features = []
         velocity_features = []
         height_features = []
+        second_distance_features = []
+        second_height_features = []
 
         for i in range(self.overlap):
             # Find on feature for each overlapping tile
             distance_tile = (np.digitize(distance, self.distance_tiles[i])).item()
             velocity_tile = (np.digitize(velocity, self.velocity_tiles[i])).item()
             height_tile = (np.digitize(height, self.height_tiles[i])).item()
+            second_distance_tile = (np.digitize(second_distance, self.second_distance_tiles[i])).item()
+            second_height_tile = (np.digitize(second_height, self.second_height_tiles[i])).item()
 
             # Append to tile arrays
             distance_features.append(distance_tile)
             velocity_features.append(velocity_tile)
             height_features.append(height_tile)
+            second_distance_features.append(second_distance_tile)
+            second_height_features.append(second_height_tile)
 
-        all_features = (distance_features, velocity_features, height_features)
+        all_features = (distance_features, velocity_features, height_features, second_distance_features, second_height_features)
         return all_features
 
     def get_indices(self, state, action):
@@ -115,7 +141,9 @@ class Tiling(object):
         distance = state[0]
         velocity = state[1]
         height = state[2]
-        F = self.get_features(distance, velocity, height)
+        second_distance = state[3]
+        second_height = state[4]
+        F = self.get_features(distance, velocity, height, second_distance, second_height)
 
         indices = []
 
@@ -124,13 +152,17 @@ class Tiling(object):
             d_index = F[0][i]
             v_index = F[1][i]
             h_index = F[2][i]
+            sd_index = F[3][i]
+            sh_index = F[4][i]
 
             index = int( \
                   (action_index * (self.total_tiles / self.action_number)) \
-                + (i * self.distance_number * self.velocity_number * self.height_number) \
-                + (d_index) \
+                + (i * self.distance_number * self.velocity_number * self.height_number * self.distance_number * self.height_number) \
+                + (sh_index * self.distance_number * self.velocity_number * self.height_number * self.distance_number) \
+                + (sd_index * self.distance_number * self.velocity_number * self.height_number) \
+                + (h_index * self.distance_number * self.velocity_number) \
                 + (v_index * self.distance_number) \
-                + (h_index * self.distance_number * self.velocity_number) )
+                + (d_index))
 
             indices.append(index)
 

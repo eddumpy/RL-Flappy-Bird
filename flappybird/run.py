@@ -123,7 +123,7 @@ def play(episodes=100):
             e *= agent.gamma * agent.lambda_
             total_reward += reward
             print(state)
-            time.sleep(0.007)
+            #time.sleep(0.007)
 
         print(total_reward)
 
