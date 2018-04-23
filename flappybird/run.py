@@ -1,3 +1,4 @@
+import time
 import gym
 import gym_ple
 import os, sys
@@ -121,7 +122,9 @@ def play(episodes=100):
             theta += agent.alpha * delta * e
             e *= agent.gamma * agent.lambda_
             total_reward += reward
+            print(state)
+            time.sleep(0.007)
 
         print(total_reward)
 
-play(episodes = 300)
+play(episodes = 30000)
