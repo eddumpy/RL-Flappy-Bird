@@ -11,7 +11,7 @@ from gym.wrappers import Monitor
 from ple.games.flappybird import FlappyBird
 
 class Agent():
-    def __init__(self, environment, alpha=0.1, epsilon=0.05, gamma=1, lambda_=0.9):
+    def __init__(self, environment, alpha=0.05, epsilon=0, gamma=1, lambda_=0.9):
         '''Initializes parameter values'''
         self.env = environment
         self.alpha = alpha
@@ -71,8 +71,7 @@ def play(episodes=100):
     agent = Agent(p)
 
     # Initialize tiles with fixed values
-    #t = Tiling(0, 300, -10, 16, -300, 250, 100, 450) # pipe_2_y min and max ignored as same as pipe_1_y
-    t = Tiling(0, 300, -10, 16, -300, 250)
+    t = Tiling(0, 300, -10, 16, -300, 300, 100, 450) # pipe_2_y min and max ignored as same as pipe_1_y
 
     # Load theta from file
     theta = np.load('theta.npy')
@@ -127,14 +126,12 @@ def play(episodes=100):
             theta += agent.alpha * delta * e
             e *= agent.gamma * agent.lambda_
             total_reward += reward
-            print(state)
+            #print(state)
             #time.sleep(0.007)
 
         print(total_reward)
-
 
     # Save updated theta to file
     np.save('theta', theta)
 
 play(episodes = 100)
-
