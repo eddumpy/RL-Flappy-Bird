@@ -11,7 +11,7 @@ from gym.wrappers import Monitor
 from ple.games.flappybird import FlappyBird
 
 class Agent():
-    def __init__(self, environment, alpha=0.1, epsilon=0.05, gamma=1, lambda_=0.9):
+    def __init__(self, environment, alpha=0.05, epsilon=0, gamma=0.99, lambda_=0.9):
         '''Initializes parameter values'''
         self.env = environment
         self.alpha = alpha
@@ -69,24 +69,24 @@ def play(episodes=100):
     p = PLE(game, display_screen=True, state_preprocessor=process_state)
     p.init()
     agent = Agent(p)
+    total_reward = []
 
     # Initialize tiles with fixed values
-    #t = Tiling(0, 300, -10, 16, -300, 250, 100, 450) # pipe_2_y min and max ignored as same as pipe_1_y
-    t = Tiling(0, 300, -10, 16, -300, 250)
+    t = Tiling(0, 300, -10, 16, -300, 300, 100, 450) # pipe_2_y min and max ignored as same as pipe_1_y
 
     # Load theta from file
-    theta = np.load('theta.npy')
-    #theta = np.zeros(t.total_tiles)
+    # theta = np.load('theta.npy')
+    theta = np.zeros(t.total_tiles)
 
     # Run given number of episodes
-    for _ in range(episodes):
+    for x in range(episodes):
         # Initialize episode parameters
         p.reset_game()
         e = np.zeros(t.total_tiles)
 
         state = p.getGameState()
         action = agent.choose_action()
-        total_reward = 0
+        total_episode_reward = 0
 
         # Episode loop
         while not p.game_over():
@@ -126,15 +126,42 @@ def play(episodes=100):
             delta += agent.gamma * Qa
             theta += agent.alpha * delta * e
             e *= agent.gamma * agent.lambda_
-            total_reward += reward
-            print(state)
+            total_episode_reward += reward
+            # Cap reward achieved
+            if total_episode_reward >= 200:
+                print("Capped")
+                break
+            #print(state)
             #time.sleep(0.007)
 
-        print(total_reward)
-
+        total_reward.append(total_episode_reward)
+        print("Episode: ", x, " Reward: ", total_episode_reward)
 
     # Save updated theta to file
-    np.save('theta', theta)
+    # np.save('theta', theta)
+    return total_reward
 
-play(episodes = 100)
+def random_play(episodes = 100):
+    # Initialize game and agent
+    game = FlappyBird()
+    p = PLE(game, display_screen=True, state_preprocessor=process_state)
+    p.init()
+    agent = Agent(p)
+    total_reward = []
 
+    # Run given number of episodes
+    for _ in range(episodes):
+        # Initialize episode
+        p.reset_game()
+        total_episode_reward = 0
+
+        # Episode loop
+        while not p.game_over():
+            action = agent.choose_action()
+            reward = p.act(action)
+            total_episode_reward += reward
+
+        # Save episode reward and return
+        total_reward.append(total_episode_reward)
+
+    return total_reward
