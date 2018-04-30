@@ -11,7 +11,7 @@ def plot_graph(birds=1, episode_number=5):
     for i in range(birds):
         bird_rewards.append(run.play(episodes=episode_number))
         random_rewards.append(run.random_play(episodes=episode_number))
-        print(i)
+        print("Bird", i)
 
     # Average across birds and 10 episodes - for both agents
     bird_rewards = np.mean(bird_rewards, axis=0, dtype=np.float64)
@@ -36,6 +36,6 @@ def plot_graph(birds=1, episode_number=5):
 
 # Plot graph and calculate time
 t = time.process_time()
-plot_graph(birds=10, episode_number=1000)
+plot_graph(birds=5, episode_number=300)
 elapsed_time = round(((time.process_time()-t)/60),2)
 print("Time taken:", elapsed_time, "minutes")

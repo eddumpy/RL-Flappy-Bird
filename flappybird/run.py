@@ -79,7 +79,7 @@ def play(episodes=100):
     theta = np.zeros(t.total_tiles)
 
     # Run given number of episodes
-    for _ in range(episodes):
+    for x in range(episodes):
         # Initialize episode parameters
         p.reset_game()
         e = np.zeros(t.total_tiles)
@@ -127,10 +127,15 @@ def play(episodes=100):
             theta += agent.alpha * delta * e
             e *= agent.gamma * agent.lambda_
             total_episode_reward += reward
+            # Cap reward achieved
+            if total_episode_reward >= 200:
+                print("Capped")
+                break
             #print(state)
             #time.sleep(0.007)
 
         total_reward.append(total_episode_reward)
+        print("Episode: ", x, " Reward: ", total_episode_reward)
 
     # Save updated theta to file
     # np.save('theta', theta)
