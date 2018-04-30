@@ -2,7 +2,7 @@ import numpy as np
 
 class Tiling(object):
     def __init__(self, distance_min, distance_max, velocity_min, velocity_max, height_min, height_max, second_distance_min, second_distance_max,\
-        distance_number=15, velocity_number=13, height_number=10, overlap=5, action_number=2):
+        distance_number=10, velocity_number=5, height_number=6, overlap=5, action_number=2):
         '''Creates tilings for all dimensions'''
         # Overlap and actions
         self.overlap = overlap
