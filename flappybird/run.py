@@ -52,7 +52,7 @@ def process_state(state):
     pipe_2_y_diff = player_y - pipe_2_bottom_y
 
     # Process state
-    state_representation = np.array([pipe_1_x_diff, player_vel, pipe_1_y_diff, pipe_2_x_diff, pipe_2_y_diff])
+    state_representation = np.array([pipe_1_x_diff, player_vel, pipe_1_y_diff])
     return state_representation
 
 def getQ(F, theta):
@@ -72,7 +72,7 @@ def play(episodes=100):
     total_reward = []
 
     # Initialize tiles with fixed values
-    t = Tiling(0, 300, -10, 16, -300, 300, 100, 450) # pipe_2_y min and max ignored as same as pipe_1_y
+    t = Tiling(0, 300, -10, 16, -300, 300)
 
     # Load theta from file
     # theta = np.load('theta.npy')
@@ -90,7 +90,6 @@ def play(episodes=100):
 
         # Episode loop
         while not p.game_over():
-            #print(state[0],"\t",state[1],"\t",state[2],"\t",state[3],"\t",state[4])
             # Get features that are 'on'
             F = t.get_indices(state, action)
 
@@ -128,11 +127,10 @@ def play(episodes=100):
             e *= agent.gamma * agent.lambda_
             total_episode_reward += reward
             # Cap reward achieved
-            if total_episode_reward >= 200:
+            if total_episode_reward >= 300:
                 print("Capped")
                 break
             #print(state)
-            #time.sleep(0.007)
 
         total_reward.append(total_episode_reward)
         print("Episode: ", x, " Reward: ", total_episode_reward)
