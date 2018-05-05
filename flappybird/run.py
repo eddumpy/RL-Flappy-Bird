@@ -11,7 +11,7 @@ from gym.wrappers import Monitor
 from ple.games.flappybird import FlappyBird
 
 class Agent():
-    def __init__(self, environment, alpha=0.05, epsilon=0, gamma=0.99, lambda_=0.9):
+    def __init__(self, environment, alpha=0.15, epsilon=0, gamma=0.99, lambda_=0.9):
         '''Initializes parameter values'''
         self.env = environment
         self.alpha = alpha
@@ -165,3 +165,4 @@ def random_play(episodes = 100):
         total_reward.append(total_episode_reward)
 
     return total_reward
+

@@ -36,6 +36,6 @@ def plot_graph(birds=1, episode_number=5):
 
 # Plot graph and calculate time
 t = time.process_time()
-plot_graph(birds=5, episode_number=300)
+plot_graph(birds=10, episode_number=350)
 elapsed_time = round(((time.process_time()-t)/60),2)
 print("Time taken:", elapsed_time, "minutes")
